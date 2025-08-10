@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  qrToken     String?
+  qrExpiresAt DateTime?
+  djMode      Boolean  @default(false)
+  autoPlay    Boolean  @default(true)
+  songCooldownMinutes Int @default(20)
+  qrValidityHours     Float @default(1.0)
+  votingEnabled       Boolean @default(true)
+  paymentEnabled      Boolean @default(true)
+  specialRequestsEnabled Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // Relations
+  songs           Song[]
+  userSessions    UserSession[]
+  specialRequests SpecialRequest[]
+  playHistory     PlayHistory[]
+  @@map("organizations")
+}
+
+model Song {
+  id             String @id @default(cuid())
+  jiosaavnId     String
+  name           String
+  primaryArtists Json   // Array of artist objects
+  image          String
+  duration       String
+  album          String?
+  year           String?
+  downloadUrl    String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  playCount      Int      @default(0)
+  upvotes        Int      @default(0)
+  downvotes      Int      @default(0)
+  paidBoosts     Int      @default(0)
+  lastPlayed     DateTime?
+  addedBy        String?
+  timeAdded      DateTime @default(now())
+  // Relations
+  votes       Vote[]
+  boosts      Boost[]
+  playHistory PlayHistory[]
+  @@map("songs")
+}
+
+model LastPlayedSong {
+  id       String   @id @default(cuid())
+  orgId    String
+  songId   String
+  playedAt DateTime @default(now())
+  @@unique([orgId, songId])
+}
+
+model UserSession {
+  id             String   @id @default(cuid())
+  sessionToken   String   @unique
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  validUntil     DateTime
+  hasVoted       String[] // Array of song IDs user has voted for
+  hasPaid        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  role           Role     @default(USER)
+  // Relations
+  votes  Vote[]
+  boosts Boost[]
+  @@map("user_sessions")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+
+
+model Vote {
+  id        String   @id @default(cuid())
+  songId    String
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  sessionId String
+  session   UserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  voteType  VoteType
+  createdAt DateTime @default(now())
+  @@unique([songId, sessionId])
+  @@map("votes")
+}
+
+
+
+model Boost {
+  id        String   @id @default(cuid())
+  songId    String
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  sessionId String
+  session   UserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  amount    Float
+  boostPoints Int
+  createdAt DateTime @default(now())
+  @@map("boosts")
+}
+
+
+
+model SpecialRequest {
+  id             String            @id @default(cuid())
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type           RequestType       // Enum: FREE, CUSTOM, BIRTHDAY, ANNIVERSARY, OTHER
+  message        String
+  requestedBy    String            // userId or name of requester
+  isFirstFree    Boolean           @default(false) // Marks if this request is the first free one  
+  paid           Boolean           @default(false)
+  amount         Float?            // Null for free ones, set for paid
+  status         RequestStatus     @default(PENDING) // Enum: PENDING, APPROVED, REJECTED
+  visibleToAll   Boolean           @default(false)   // If DJ chooses to broadcast to all
+  timestamp      DateTime          @default(now())
+  fromRole       String            // "USER" | "DJ" → helps track who sent it
+  @@map("special_requests")
+}
+
+model PlayHistory {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  songId         String
+  song           Song         @relation(fields: [songId], references: [id], onDelete: Cascade)
+  playedAt       DateTime     @default(now())
+  playedBy       String?      // DJ or system
+  @@map("play_history")
+}
+
+
+
+enum VoteType {
+  UP
+  DOWN
+}
+
+
+
+enum RequestType {
+  FREE
+  BIRTHDAY
+  ANNIVERSARY
+  DEDICATION
+  CUSTOM
+}
+
+
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  REJECTED
+}
