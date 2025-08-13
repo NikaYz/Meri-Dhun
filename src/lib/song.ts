@@ -72,7 +72,7 @@
 export interface Song {
   id: string;
   name: string;
-  primaryArtists: { id: string; name: string; [key: string]: any }[];
+  primaryArtists: { id: string; name: string; [key: string]: unknown}[];
   image: string;
   duration: string;
   album: string;
@@ -140,4 +140,13 @@ export interface UserSession {
   validUntil: string;
   hasVoted: string[];
   hasPaid: boolean;
+}
+export interface NowPlayingState {
+  organizationId: string;
+  currentSong: Song | null;
+  previousSong: Song | null;
+  updatedAt: string;
+}
+export interface NowPlayingApiResponse {
+  nowPlayingState: NowPlayingState | null;
 }

@@ -38,8 +38,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error('❌ Stripe Checkout Session Error:', err); // ✅ log actual error object
-    return NextResponse.json({ error: err.message || 'Unknown server error' }, { status: 500 });
+  } catch  {
+    //console.error('❌ Stripe Checkout Session Error:', err); // ✅ log actual error object
+    return NextResponse.json('Unknown server error' , { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ThumbsUp, ThumbsDown, DollarSign, Clock, Zap, TrendingUp } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Clock, Zap, TrendingUp } from 'lucide-react';
 import { LeaderboardEntry } from '@/lib/song';
 import { LeaderboardService } from '@/lib/services/leaderboard';
 import { handleBoost as handleStripeBoost } from '../lib/features/handleBoost';
@@ -21,7 +21,6 @@ export default function VotingInterface({
   onVote,
   canVote,
   emitSongVoted,
-  emitSongBoosted,
 }: VotingInterfaceProps) {
   const [showBoostModal, setShowBoostModal] = useState(false);
   const [boostAmount, setBoostAmount] = useState(50);
@@ -66,7 +65,8 @@ export default function VotingInterface({
         userId,
         organizationId,
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Boost failed:', error);
       showNotification('Vote failed. Please try again.', 'bg-gradient-to-r from-red-500 to-red-400');
     }
 
@@ -77,7 +77,8 @@ export default function VotingInterface({
     try {
       await handleStripeBoost(boostAmount, entry, userId, organizationId);
       setShowBoostModal(false);
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Boost failed:', error);
       showNotification('Boost failed. Please try again.', 'bg-gradient-to-r from-red-500 to-red-400');
     }
   };

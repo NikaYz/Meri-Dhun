@@ -79,7 +79,7 @@ function App() {
         <div className="space-y-6">
           {currentView === 'join' && (
             <>
-              {/* <QrJoinForm /> */}
+              <QrJoinForm />
               
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <button

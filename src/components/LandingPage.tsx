@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Play, Music, Users, QrCode, TrendingUp, Heart, Zap, Star, Volume2, Headphones, Crown, Trophy, ArrowRight, Sparkles, Radio, Mic2, Waves, Disc3 } from 'lucide-react';
+import { Play, Music, Users, QrCode, TrendingUp, Heart, Zap, Star, Volume2, Headphones, Crown, Trophy, ArrowRight, Sparkles, Radio, Mic2, Disc3 } from 'lucide-react';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -23,7 +23,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
       setCurrentSong((prev) => (prev + 1) % indianSongs.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [indianSongs.length]);
 
   useEffect(() => {
     const glowInterval = setInterval(() => {
@@ -69,7 +69,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               <div className="space-y-6">
                 <div className="flex items-center space-x-2 text-green-400 font-semibold">
                   <Sparkles className="w-5 h-5" />
-                  <span>India's Premier Music Experience</span>
+                  <span>India&apos;s Premier Music Experience</span>
                 </div>
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
                   <span className="block text-white">Where Music</span>

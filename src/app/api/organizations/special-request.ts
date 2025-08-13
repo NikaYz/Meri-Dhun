@@ -68,6 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           requestedBy,
           paid: true, // In real app, integrate with payment processor
           amount,
+          fromRole: payload.type,
         }
       })
 

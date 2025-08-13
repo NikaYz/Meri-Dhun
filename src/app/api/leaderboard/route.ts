@@ -305,27 +305,27 @@ import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 
 // DB song matches Prisma DB schema (primaryArtists is string)
-interface DbSong {
-  id: string;
-  name: string;
-  primaryArtists: string  | null;
-  image: string;
-  duration: string;
-  album: string;
-  year: string;
-  upvotes: number;
-  downvotes: number;
-  paidBoosts?: number;
-  playCount?: number;
-  lastPlayed: string;
-  timeAdded: string;
-  votes: { voteType: string }[];
-}
+// interface DbSong {
+//   id: string;
+//   name: string;
+//   primaryArtists: string  | null;
+//   image: string;
+//   duration: string;
+//   album: string;
+//   year: string;
+//   upvotes: number;
+//   downvotes: number;
+//   paidBoosts?: number;
+//   playCount?: number;
+//   lastPlayed: string;
+//   timeAdded: string;
+//   votes: { voteType: string }[];
+// }
 
-// API song matches what you want to return (primaryArtists parsed)
-interface ApiSong extends Omit<DbSong, 'primaryArtists' | 'votes'> {
-  primaryArtists: { name: string }[];
-}
+// // API song matches what you want to return (primaryArtists parsed)
+// interface ApiSong extends Omit<DbSong, 'primaryArtists' | 'votes'> {
+//   primaryArtists: { name: string }[];
+// }
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -401,7 +401,7 @@ export async function DELETE(req: NextRequest) {
   if (!organizationId) {
     return NextResponse.json({ error: 'organizationId is required' }, { status: 400 });
   }
-
+  console.log("Song id: ",songId);
   try {
     if (songId) {
       await prisma.song.deleteMany({

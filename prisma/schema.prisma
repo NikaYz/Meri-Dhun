@@ -28,14 +28,35 @@ model Organization {
   userSessions    UserSession[]
   specialRequests SpecialRequest[]
   playHistory     PlayHistory[]
+    nowPlayingState NowPlayingState?
   @@map("organizations")
+}
+
+// NEW: This model will act as the single source of truth for the currently playing song for each organization.
+model NowPlayingState {
+  // Use the organizationId as the primary key for a one-to-one relationship
+  organizationId String   @id @map("organizationId")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // The ID of the song currently playing, can be null if no song is active.
+  currentSongId  String?
+  currentSong    Song?      @relation("CurrentSong", fields: [currentSongId], references: [id], onDelete: SetNull)
+
+  // The ID of the song that just finished playing, can be null.
+  previousSongId String?
+  previousSong   Song?      @relation("PreviousSong", fields: [previousSongId], references: [id], onDelete: SetNull)
+
+  // Use a timestamp to help clients know when to refresh
+  updatedAt      DateTime @updatedAt
+  
+  @@map("now_playing_state")
 }
 
 model Song {
   id             String @id @default(cuid())
   jiosaavnId     String
   name           String
-  primaryArtists Json   // Array of artist objects
+  primaryArtists String  // Array of artist objects
   image          String
   duration       String
   album          String?
@@ -54,6 +75,8 @@ model Song {
   votes       Vote[]
   boosts      Boost[]
   playHistory PlayHistory[]
+  currentNowPlayingState NowPlayingState[] @relation("CurrentSong")
+  previousNowPlayingState NowPlayingState[] @relation("PreviousSong")
   @@map("songs")
 }
 

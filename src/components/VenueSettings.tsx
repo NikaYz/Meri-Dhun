@@ -35,7 +35,7 @@ export default function VenueSettings({ id }: VenueSettingsProps) {
         if (!res.ok) throw new Error('Failed to fetch settings');
         const data = await res.json();
         setSettings(data);
-      } catch (err) {
+      } catch {
         setError('Could not load organization settings.');
       } finally {
         setLoading(false);
@@ -84,8 +84,8 @@ export default function VenueSettings({ id }: VenueSettingsProps) {
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setSaving(false);
     }

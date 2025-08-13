@@ -13,17 +13,39 @@ export class JioSaavnService {
       }
       
       const data = await response.json();
-      
-      return data.data.results.map((song: any) => ({
-        id: song.id,
-        name: song.name,
-        primaryArtists: song.artists.primary,
-        image: song.image[2]?.url || song.image[1]?.url || song.image[0]?.url,
-        duration: song.duration,
-        album: song.album?.name || '',
-        year: song.year || '',
-        downloadUrl : song.downloadUrl[4]?.url || song.downloadUrl[3]?.url || song.downloadUrl[2]?.url || song.downloadUrl[1]?.url || song.downloadUrl[0]?.url,
-      }));
+        return data.data.results.map((song: unknown) => {
+          const s = song as {
+            id: string;
+            name: string;
+            artists: { primary: Song['primaryArtists'] };
+            image: { url: string }[];
+            duration: string;
+            album?: { name: string };
+            year?: string;
+            downloadUrl: { url: string }[];
+          };
+
+          return {
+            id: s.id,
+            name: s.name,
+            primaryArtists: s.artists.primary,
+            image: s.image[2]?.url || s.image[1]?.url || s.image[0]?.url,
+            duration: s.duration,
+            album: s.album?.name || '',
+            year: s.year || '',
+            downloadUrl: s.downloadUrl[4]?.url || s.downloadUrl[3]?.url || s.downloadUrl[2]?.url || s.downloadUrl[1]?.url || s.downloadUrl[0]?.url,
+          };
+        });
+      // return data.data.results.map((song: any) => ({
+      //   id: song.id,
+      //   name: song.name,
+      //   primaryArtists: song.artists.primary,
+      //   image: song.image[2]?.url || song.image[1]?.url || song.image[0]?.url,
+      //   duration: song.duration,
+      //   album: song.album?.name || '',
+      //   year: song.year || '',
+      //   downloadUrl : song.downloadUrl[4]?.url || song.downloadUrl[3]?.url || song.downloadUrl[2]?.url || song.downloadUrl[1]?.url || song.downloadUrl[0]?.url,
+      // }));
     } catch (error) {
       console.error('Error searching songs:', error);
       return [];

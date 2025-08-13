@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
     if (!isValid) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
-    const validUntil = new Date(Date.now() + 1000 * 60 * 60 * 12); // 12 hours
     const session = await createUserSession(organization.id, 12,"ADMIN");
     
     const token = generateToken({

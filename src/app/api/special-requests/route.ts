@@ -1,7 +1,6 @@
 // app/api/special-requests/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { RequestStatus } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)

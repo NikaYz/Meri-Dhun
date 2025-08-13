@@ -68,7 +68,7 @@ export class ApiClient {
     return this.request(`/organizations/${organizationId}/songs`)
   }
 
-  async addSong(organizationId: string, songData: any) {
+  async addSong(organizationId: string, songData: unknown) {
     return this.request(`/organizations/${organizationId}/songs`, {
       method: 'POST',
       body: JSON.stringify(songData),
@@ -93,7 +93,7 @@ export class ApiClient {
     return this.request(`/organizations/${organizationId}/special-requests`)
   }
 
-  async createSpecialRequest(organizationId: string, requestData: any) {
+  async createSpecialRequest(organizationId: string, requestData: unknown) {
     return this.request(`/organizations/${organizationId}/special-requests`, {
       method: 'POST',
       body: JSON.stringify(requestData),
@@ -111,7 +111,7 @@ export class ApiClient {
     return this.request(`/organizations/${organizationId}/settings`)
   }
 
-  async updateSettings(organizationId: string, settings: any) {
+  async updateSettings(organizationId: string, settings: unknown) {
     return this.request(`/organizations/${organizationId}/settings`, {
       method: 'PATCH',
       body: JSON.stringify(settings),

@@ -1,7 +1,5 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 import { prisma } from '../../../../lib/prisma'
 import { hashPassword } from '@/lib/auth';
 

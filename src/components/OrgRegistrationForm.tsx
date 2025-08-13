@@ -9,8 +9,8 @@ type OrganizationFormData = {
   password: string;
   djMode: boolean;
   autoPlay: boolean;
-  songCooldownMinutes: number;
-  qrValidityHours: number;
+  songCooldownMinutes?: number;
+  qrValidityHours?: number;
   votingEnabled: boolean;
   paymentEnabled: boolean;
   specialRequestsEnabled: boolean;
@@ -24,8 +24,8 @@ const OrgRegistrationForm = ({ onCreated, onBack }: { onCreated: (orgId: string)
     password: '',
     djMode: false,
     autoPlay: true,
-    songCooldownMinutes: undefined as any,
-    qrValidityHours: undefined as any,
+    songCooldownMinutes: undefined,
+    qrValidityHours: undefined,
     votingEnabled: true,
     paymentEnabled: true,
     specialRequestsEnabled: true,
@@ -61,8 +61,8 @@ const OrgRegistrationForm = ({ onCreated, onBack }: { onCreated: (orgId: string)
       } else {
         setError(result.message || 'Something went wrong');
       }
-    } catch (err) {
-      setError('Server error');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message :'Server error');
     } finally {
       setLoading(false);
     }

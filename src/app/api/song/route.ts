@@ -154,7 +154,7 @@ import { Song } from '@/lib/song';
 const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"; 
 
-export async function getLastPlayed(orgId: string, songId: string) {
+async function getLastPlayed(orgId: string, songId: string) {
   const res = await fetch(
     `${baseUrl}/api/last-played?orgId=${orgId}&songId=${songId}`,
     { method: "GET" }
@@ -197,6 +197,14 @@ export async function POST(req: NextRequest) {
     const { song }: { song: Song } = body;
     const { id: jiosaavnId, name, primaryArtists, image, duration, album, year, downloadUrl } = song;
 
+    // Convert the array of artist objects into a comma-separated string
+    // const artistsAsString = primaryArtists.map(artist => artist.name).join(', ');
+    let artistsAsString;
+    if (Array.isArray(primaryArtists)) {
+      artistsAsString = primaryArtists.map(artist => artist.name).join(', ');
+    } else {
+      artistsAsString = primaryArtists;
+    }
     const existingSong = await prisma.song.findFirst({
       where: {
         jiosaavnId,
@@ -267,11 +275,12 @@ export async function POST(req: NextRequest) {
         }
       
       }
+  
     const newSong = await prisma.song.create({
       data: {
         jiosaavnId,
         name,
-        primaryArtists,
+        primaryArtists: artistsAsString,
         image,
         duration,
         album,
@@ -301,3 +310,282 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const orgid = searchParams.get('orgid');
+  const songid = searchParams.get('songid'); 
+
+  if (!orgid || !songid) {
+    return NextResponse.json({ message: 'Missing organization ID or song ID' }, { status: 400 });
+  }
+
+  try {
+    const existingSong = await prisma.song.findFirst({
+      where: {
+        id: songid,
+        organizationId: orgid,
+      },
+    });
+   
+    if (existingSong) {
+      // Logic to handle primaryArtists conversion from string to array
+      let artistsArray;
+      if (typeof existingSong.primaryArtists === 'string') {
+        artistsArray = existingSong.primaryArtists
+          .replace(/"/g, '') // Remove any surrounding quotes
+          .split(',')
+          .map(artistName => ({ name: artistName.trim() }));
+      } else {
+        // If it's already an array (for older data), use it directly
+        artistsArray = existingSong.primaryArtists;
+      }
+      console.log(artistsArray);
+      // Create a new song object with the corrected primaryArtists format
+      const songWithFormattedArtists = {
+        ...existingSong,
+        primaryArtists: artistsArray,
+      };
+
+      return NextResponse.json(songWithFormattedArtists, { status: 200 });
+    } else {
+      return NextResponse.json({ message: 'Song not found' }, { status: 404 });
+    }
+  } catch (error) {
+    console.error('Get song error:', error instanceof Error ? error.message : error);
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+// export async function GET(req: NextRequest) {
+//   const { searchParams } = new URL(req.url);
+//   const orgid = searchParams.get('orgid');
+//   const songid = searchParams.get('songid'); 
+
+//   if (!orgid || !songid) {
+//     return NextResponse.json({ message: 'Missing organization ID or song ID' }, { status: 400 });
+//   }
+
+//   try {
+//     const existingSong = await prisma.song.findFirst({
+//       where: {
+//         id: songid,
+//         organizationId: orgid,
+//       },
+//     });
+   
+//     if (existingSong) {
+//        let artistsArray;
+//     if (Array.isArray(existingSong.primaryArtists)) {
+//       // If it's an array of objects, use it directly
+//       artistsArray = primaryArtists;
+//     } else if (typeof primaryArtists === 'string') {
+//       // If it's a string, convert it to an array of objects
+//       artistsArray = primaryArtists
+//         .replace(/"/g, '') // Remove any surrounding quotes
+//         .split(',')
+//         .map(artistName => ({ name: artistName.trim() }));
+//     } else {
+//       // Handle cases where the format is neither an array nor a string
+//       return NextResponse.json({ message: 'Invalid format for primaryArtists' }, { status: 400 });
+//     }
+//       return NextResponse.json(existingSong, { status: 200 });
+//     } else {
+//       return NextResponse.json({ message: 'Song not found' }, { status: 404 });
+//     }
+//   } catch (error) {
+//     console.error('Get song error:', error instanceof Error ? error.message : error);
+//     return NextResponse.json(
+//       { message: error instanceof Error ? error.message : 'Internal server error' },
+//       { status: 500 }
+//     );
+//   }
+// }
+// import { NextRequest, NextResponse } from 'next/server';
+// import { prisma } from '@/lib/prisma';
+// import { verifyToken } from '@/lib/auth';
+// import { Song } from '@/lib/song';
+// // const COOLDOWN_MS = 20 * 60 * 1000;
+// const baseUrl =
+//     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"; 
+
+// export async function getLastPlayed(orgId: string, songId: string) {
+//   const res = await fetch(
+//     `${baseUrl}/api/last-played?orgId=${orgId}&songId=${songId}`,
+//     { method: "GET" }
+//   );
+//   if (res.status === 404) {
+//     return null; // no last played yet
+//   }
+
+//   if (!res.ok) {
+//     throw new Error(`Failed to fetch last played: ${res.status}`);
+//   }
+
+//   return res.json();
+  
+// }
+// export async function POST(req: NextRequest) {
+//   const { searchParams } = new URL(req.url);
+//   const orgid = searchParams.get('orgid');
+
+//   if (!orgid) {
+//     return NextResponse.json({ message: 'Missing organization ID' }, { status: 400 });
+//   }
+
+//   try {
+//     const authHeader = req.headers.get('authorization');
+//     if (!authHeader) {
+//       return NextResponse.json({ message: 'No authorization header' }, { status: 401 });
+//     }
+
+//     const token = authHeader.split(' ')[1];
+//     const payload = await verifyToken(token);
+
+//     if (!payload || payload.organizationId !== orgid) {
+//       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+//     }
+
+//     const body = await req.json();
+//     console.log('Incoming request body:', JSON.stringify(body, null, 2));
+
+//     const { song }: { song: Song } = body;
+//     const { id: jiosaavnId, name, primaryArtists, image, duration, album, year, downloadUrl } = song;
+
+//     const existingSong = await prisma.song.findFirst({
+//       where: {
+//         jiosaavnId,
+//         organizationId: orgid,
+//       },
+//     });
+//     const Organization = await prisma.organization.findUnique({
+//       where:{
+//         id: orgid,
+//       }
+//     })
+//     const COOLDOWN_MS = (Organization?.songCooldownMinutes ?? 20) * 60 * 1000;
+//     const lastPlayedT = await getLastPlayed(orgid, jiosaavnId);
+
+//     if (existingSong ) {
+//       if(lastPlayedT){
+//         const lastPlayedTime = new Date(lastPlayedT.playedAt).getTime();
+//         const now = Date.now();
+//         const diff = now - lastPlayedTime;
+
+//         if (diff < COOLDOWN_MS) {
+//           const remainingMs = COOLDOWN_MS - diff;
+//           const remainingMinutes = Math.ceil(remainingMs / 60000);
+
+//           return NextResponse.json(
+//             { 
+//               message: `This song was recently played. Please try again in ${remainingMinutes} minute(s).`, 
+//               cooldownEndsAt: new Date(lastPlayedTime + COOLDOWN_MS) 
+//             },
+//             { status: 429 } // Too Many Requests
+//           );
+//         }
+//       }
+//       const updatedSong = await prisma.song.update({
+//         where: { id: existingSong.id },
+//         data: {
+//           playCount: { increment: 1 },
+//           //lastPlayed: new Date(),
+//         },
+//       });
+      
+//       await prisma.playHistory.create({
+//         data: {
+//           organizationId: orgid,
+//           songId: existingSong.id,
+//           playedBy: payload.type === 'ADMIN' ? 'DJ' : 'System',
+//         },
+//       });
+
+//       return NextResponse.json(updatedSong);
+//     }
+//       if(lastPlayedT){
+//         const lastPlayedTime = new Date(lastPlayedT.playedAt).getTime();
+//         const now = Date.now();
+//         const diff = now - lastPlayedTime;
+
+//         if (diff < COOLDOWN_MS) {
+//           const remainingMs = COOLDOWN_MS - diff;
+//           const remainingMinutes = Math.ceil(remainingMs / 60000);
+
+//           return NextResponse.json(
+//             { 
+//               message: `This song was recently played. Please try again in ${remainingMinutes} minute(s).`, 
+//               cooldownEndsAt: new Date(lastPlayedTime + COOLDOWN_MS) 
+//             },
+//             { status: 429 } 
+//           );
+//         }
+      
+//       }
+//     const newSong = await prisma.song.create({
+//       data: {
+//         jiosaavnId,
+//         name,
+//         primaryArtists,
+//         image,
+//         duration,
+//         album,
+//         year,
+//         downloadUrl,
+//         organizationId: orgid,
+//         playCount: 1,
+//         lastPlayed: new Date(),
+//         addedBy: payload.sessionId || payload.organizationId,
+//       },
+//     });
+
+//     await prisma.playHistory.create({
+//       data: {
+//         organizationId: orgid,
+//         songId: newSong.id,
+//         playedBy: payload.type === 'ADMIN' ? 'DJ' : 'System',
+//       },
+//     });
+
+//     return NextResponse.json(newSong, { status: 201 });
+//   } catch (error) {
+//     console.error('Add song error:', error instanceof Error ? error.message : error);
+//     return NextResponse.json(
+//       { message: error instanceof Error ? error.message : 'Internal server error' },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+// export async function GET(req: NextRequest) {
+//   const { searchParams } = new URL(req.url);
+//   const orgid = searchParams.get('orgid');
+//   const songid = searchParams.get('songid'); 
+
+//   if (!orgid || !songid) {
+//     return NextResponse.json({ message: 'Missing organization ID or song ID' }, { status: 400 });
+//   }
+
+//   try {
+//     const existingSong = await prisma.song.findFirst({
+//       where: {
+//         id: songid,
+//         organizationId: orgid,
+//       },
+//     });
+
+//     if (existingSong) {
+//       return NextResponse.json(existingSong, { status: 200 });
+//     } else {
+//       return NextResponse.json({ message: 'Song not found' }, { status: 404 });
+//     }
+//   } catch (error) {
+//     console.error('Get song error:', error instanceof Error ? error.message : error);
+//     return NextResponse.json(
+//       { message: error instanceof Error ? error.message : 'Internal server error' },
+//       { status: 500 }
+//     );
+//   }
+// }

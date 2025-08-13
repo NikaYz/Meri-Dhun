@@ -38,8 +38,8 @@ const OrgLoginForm: React.FC<Props> = ({ onLogin, onBack }) => {
       console.log(token);
       onLogin(orgId);
       router.push(`/org/${orgId}/dashboard`);
-    } catch (err) {
-      setError('Login failed. Please check your credentials.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
             });
           }
         }
-      } catch (err) {
+      } catch {
         console.warn('Invalid or expired token, creating new session');
       }
     }
